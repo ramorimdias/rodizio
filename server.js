@@ -172,6 +172,21 @@ function requestHandler(req, res) {
     broadcastGroupState(code);
     return;
   }
+  // Estado atual do grupo (fallback para polling)
+  if (req.method === 'GET' && pathname === '/group-state') {
+    const code = (parsedUrl.query.code || '').toUpperCase();
+    if (!code) {
+      sendJson(res, 400, { ok: false, error: 'Código ausente' });
+      return;
+    }
+    const group = store.getGroup(code);
+    if (!group) {
+      sendJson(res, 404, { ok: false, error: 'Grupo não encontrado' });
+      return;
+    }
+    sendJson(res, 200, { ok: true, code, participants: getSortedParticipants(group) });
+    return;
+  }
   // Cria um grupo
   if (req.method === 'POST' && pathname === '/create-group') {
     let body = '';
