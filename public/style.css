@@ -1,12 +1,15 @@
 /*
- * Estilos básicos para a aplicação.  Priorizamos um design mobile‑first
- * simples e elegante.  Utilizamos flexbox para organizar os elementos
- * e mantemos um esquema de cores neutras com destaque para os botões.
+ * Estilos personalizados para a aplicação Rodízio.
+ * A proposta aqui é trazer um clima mais alegre e acolhedor com cores
+ * pastel e pequenos toques de animação.  Mantivemos a estrutura
+ * original, mas mudamos algumas cores e adicionamos transições.
  */
+
 body {
   margin: 0;
   font-family: system-ui, sans-serif;
-  background: #f7f7f7;
+  /* Use um tom pastel claro como fundo para deixar a interface mais alegre */
+  background: #fff7f0;
   color: #333;
 }
 
@@ -40,23 +43,24 @@ button {
   padding: 0.6rem 1rem;
   border-radius: 4px;
   border: none;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, transform 0.1s ease;
 }
 
 button.primary {
-  background-color: #f95f62;
+  /* cor primária mais suave e alegre */
+  background-color: #ff6f61;
   color: #fff;
 }
 button.primary:hover {
-  background-color: #e1484c;
+  background-color: #e55a55;
 }
 button.secondary {
   background-color: #fff;
-  color: #f95f62;
-  border: 2px solid #f95f62;
+  color: #ff6f61;
+  border: 2px solid #ff6f61;
 }
 button.secondary:hover {
-  background-color: #fbe8e8;
+  background-color: #fff2f1;
 }
 button.small {
   font-size: 0.8rem;
@@ -137,12 +141,14 @@ form.card select {
   border-radius: 8px;
   border: 2px solid #eee;
   background: #fafafa;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  /* adicione transição para background e transformação */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.15s ease;
 }
 
 .food-option-content img {
-  width: 20px;
-  height: 20px;
+  /* imagens menores para os ícones de comida */
+  width: 16px;
+  height: 16px;
   object-fit: contain;
 }
 
@@ -151,17 +157,21 @@ form.card select {
   color: #444;
 }
 
+/* destaque a opção selecionada com uma cor de fundo e leve zoom */
 .food-option input:checked + .food-option-content {
-  border-color: #f95f62;
-  box-shadow: 0 0 0 3px rgba(249, 95, 98, 0.2);
+  border-color: #ff6f61;
+  background: #ffe6e3;
+  box-shadow: 0 0 0 3px rgba(255, 111, 97, 0.2);
+  transform: scale(1.05);
 }
 
 .food-option input:checked + .food-option-content span {
-  color: #f95f62;
+  color: #ff6f61;
 }
 
 .food-option:hover .food-option-content {
-  border-color: #f95f62;
+  border-color: #ff6f61;
+  transform: scale(1.03);
 }
 
 .radio-group {
@@ -193,12 +203,18 @@ form.card select {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .group-title img {
   width: 20px;
   height: 20px;
   object-fit: contain;
+}
+
+.group-title .food-label {
+  font-weight: 600;
+  color: #ff6f61;
 }
 
 .group-actions {
@@ -220,22 +236,22 @@ form.card select {
 }
 
 .button-link.primary {
-  background-color: #f95f62;
+  background-color: #ff6f61;
   color: #fff;
 }
 
 .button-link.primary:hover {
-  background-color: #e1484c;
+  background-color: #e55a55;
 }
 
 .button-link.secondary {
   background-color: #fff;
-  color: #f95f62;
-  border: 2px solid #f95f62;
+  color: #ff6f61;
+  border: 2px solid #ff6f61;
 }
 
 .button-link.secondary:hover {
-  background-color: #fbe8e8;
+  background-color: #fff2f1;
 }
 
 .button-link.small {
@@ -257,11 +273,13 @@ form.card select {
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  /* animação de entrada suave para cada participante */
+  animation: fadeInUp 0.35s ease;
 }
 
 .participant.leader {
-  border: 2px solid #f95f62;
-  box-shadow: 0 4px 10px rgba(249, 95, 98, 0.2);
+  border: 2px solid #ff6f61;
+  box-shadow: 0 4px 10px rgba(255, 111, 97, 0.2);
 }
 
 .participant .info {
@@ -292,6 +310,18 @@ form.card select {
   padding: 0.3rem 0.5rem;
   font-size: 1rem;
   line-height: 1;
+}
+
+/* animação que faz os elementos aparecerem de baixo para cima */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (min-width: 600px) {

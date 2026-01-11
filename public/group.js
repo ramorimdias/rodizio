@@ -63,15 +63,24 @@
     churrasco: { icon: 'churrasco.png', label: 'Churrasco', unit: 'porção', plural: 'porções' }
   };
 
-  function setFoodIcon(foodType) {
-    const icon = document.getElementById('food-icon');
-    if (!icon) return;
+  /**
+   * Atualiza o ícone e o rótulo do tipo de comida exibido no topo da tela.
+   */
+  function setFoodDisplay(foodType) {
+    const iconEl = document.getElementById('food-icon');
+    const labelEl = document.getElementById('food-label');
     const config = foodConfig[foodType] || foodConfig.pizza;
-    icon.src = config.icon;
-    icon.alt = config.label;
+    if (iconEl) {
+      iconEl.src = config.icon;
+      iconEl.alt = config.label;
+    }
+    if (labelEl) {
+      labelEl.textContent = config.label;
+    }
   }
 
-  setFoodIcon(currentFoodType);
+  // Inicializa com o valor padrão
+  setFoodDisplay(currentFoodType);
 
   // SSE connection
   const sseUrl = `/events?code=${encodeURIComponent(code)}&participantId=${encodeURIComponent(
@@ -91,7 +100,7 @@
       if (Array.isArray(msg.participants)) {
         if (msg.foodType) {
           currentFoodType = msg.foodType;
-          setFoodIcon(currentFoodType);
+          setFoodDisplay(currentFoodType);
         }
         renderParticipants(msg.participants);
       }
