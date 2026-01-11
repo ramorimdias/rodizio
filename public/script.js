@@ -129,11 +129,17 @@
   }
 
   loadParticipantsBtn?.addEventListener('click', async () => {
-    const result = await loadParticipants();
-    if (!result) return;
-    renderParticipantsList(result.participants);
     joinOptions?.classList.remove('hidden');
     setJoinMode(document.querySelector('input[name="join-mode"]:checked')?.value || 'new');
+    setJoinFeedback('Carregando participantes...');
+    loadParticipantsBtn.disabled = true;
+    const result = await loadParticipants();
+    loadParticipantsBtn.disabled = false;
+    if (!result) {
+      setJoinFeedback('Por favor, insira o código do grupo.');
+      return;
+    }
+    renderParticipantsList(result.participants);
     setJoinFeedback(result.errorMessage || '');
   });
 
