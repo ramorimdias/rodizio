@@ -133,6 +133,14 @@
     e.preventDefault();
     const code = joinCodeInput.value.trim().toUpperCase();
     if (!code) return;
+    if (joinOptions?.classList.contains('hidden')) {
+      const result = await loadParticipants();
+      if (!result) return;
+      renderParticipantsList(result.participants);
+      joinOptions.classList.remove('hidden');
+      setJoinMode(document.querySelector('input[name="join-mode"]:checked')?.value || 'new');
+      return;
+    }
     const selectedMode =
       document.querySelector('input[name="join-mode"]:checked')?.value || 'new';
     let name = '';
