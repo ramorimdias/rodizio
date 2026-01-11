@@ -8,18 +8,30 @@
   }
 
   // Ensure we have a stable participantId across reloads.
-  let participantId = localStorage.getItem('participantId');
+  const participantIdKey = `participantId:${code}`;
+  const participantNameKey = `participantName:${code}`;
+  let participantId = localStorage.getItem(participantIdKey);
   if (!participantId) {
     participantId =
-      (crypto?.randomUUID?.() ||
-        `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+      localStorage.getItem('participantId') ||
+      crypto?.randomUUID?.() ||
+      `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     localStorage.setItem('participantId', participantId);
+    localStorage.setItem(participantIdKey, participantId);
   }
 
   // Ensure we have a name (optional but helps SSE / display).
-  let participantName = localStorage.getItem('participantName') || '';
+  const storedName = localStorage.getItem(participantNameKey);
+  let participantName =
+    storedName ||
+    localStorage.getItem('participantName') ||
+    '';
+  if (participantName && !storedName) {
+    localStorage.setItem(participantNameKey, participantName);
+  }
   if (!participantName) {
-    participantName = 'AnÙnimo';
+    localStorage.setItem(participantNameKey, participantName);
+    participantName = 'An√¥nimo';
     localStorage.setItem('participantName', participantName);
   }
 
@@ -35,10 +47,10 @@
     try {
       await navigator.clipboard.writeText(code);
       copyBtn.textContent = 'Copiado!';
-      setTimeout(() => (copyBtn.textContent = 'Copiar cÛdigo'), 2000);
+      setTimeout(() => (copyBtn.textContent = 'Copiar c√≥digo'), 2000);
     } catch (err) {
       console.error(err);
-      alert('N„o foi possÌvel copiar');
+      alert('N√£o foi poss√≠vel copiar');
     }
   });
 
