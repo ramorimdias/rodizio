@@ -53,6 +53,16 @@ function findParticipantByName(group, name) {
   );
 }
 
+function buildParticipantsList(group) {
+  return Object.values(group.participants || {})
+    .sort((a, b) => b.slices - a.slices)
+    .map((participant) => ({
+      id: participant.id,
+      name: participant.name,
+      slices: participant.slices
+    }));
+}
+
 // In‑memory data store and SSE connections.
 const data = loadData();
 // Map of group code -> Set of SSE connections (response objects).
@@ -79,9 +89,7 @@ const mimeTypes = {
 function broadcastGroupState(code) {
   const group = data.groups[code];
   if (!group) return;
-  const participants = Object.values(group.participants || {})
-    .sort((a, b) => b.slices - a.slices)
-    .map((p) => ({ id: p.id, name: p.name, slices: p.slices }));
+  const participants = buildParticipantsList(group);
   const payload = JSON.stringify({ participants });
   (sseConnections[code] || []).forEach((res) => {
     try {
@@ -194,10 +202,20 @@ function handlePost(req, res) {
           joinedAt: now,
           updatedAt: now
         };
+        participant = group.participants[resolvedParticipantId];
       }
       saveData();
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ code, participantId: resolvedParticipantId }));
+      res.end(
+        JSON.stringify({
+          code,
+          participantId: resolvedParticipantId,
+          participant: participant
+            ? { id: participant.id, name: participant.name, slices: participant.slices }
+            : null,
+          participants: buildParticipantsList(group)
+        })
+      );
       broadcastGroupState(code);
       return;
     }
