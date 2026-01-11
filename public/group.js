@@ -38,6 +38,7 @@
   const groupCodeEl = document.getElementById('group-code');
   const copyBtn = document.getElementById('copy-code');
   const participantsEl = document.getElementById('participants');
+  let currentFoodType = 'pizza';
 
   // Show the group code on screen.
   groupCodeEl.textContent = code;
@@ -54,6 +55,20 @@
     }
   });
 
+  function setFoodIcon(foodType) {
+    const icon = document.getElementById('food-icon');
+    if (!icon) return;
+    if (foodType === 'japones') {
+      icon.src = 'uramaki.png';
+      icon.alt = 'Japonês';
+    } else {
+      icon.src = 'pizza.png';
+      icon.alt = 'Pizza';
+    }
+  }
+
+  setFoodIcon(currentFoodType);
+
   // SSE connection
   const sseUrl = `/events?code=${encodeURIComponent(code)}&participantId=${encodeURIComponent(
     participantId
@@ -61,10 +76,19 @@
 
   const evtSource = new EventSource(sseUrl);
 
+  function getSliceLabel(foodType, count) {
+    const unit = foodType === 'japones' ? 'peça' : 'fatia';
+    return count === 1 ? unit : `${unit}s`;
+  }
+
   evtSource.onmessage = (event) => {
     try {
       const msg = JSON.parse(event.data);
       if (Array.isArray(msg.participants)) {
+        if (msg.foodType) {
+          currentFoodType = msg.foodType;
+          setFoodIcon(currentFoodType);
+        }
         renderParticipants(msg.participants);
       }
     } catch (err) {
@@ -91,13 +115,17 @@
     participants.forEach((p) => {
       const row = document.createElement('div');
       row.className = 'participant';
+      const isLeader = maxSlices > 0 && p.slices === maxSlices;
+      if (isLeader) {
+        row.classList.add('leader');
+      }
 
       const info = document.createElement('div');
       info.className = 'info';
 
       const nameEl = document.createElement('div');
       nameEl.className = 'name';
-      if (!crownAssigned && p.slices === maxSlices) {
+      if (isLeader && !crownAssigned) {
         nameEl.textContent = `👑 ${p.name}`;
         crownAssigned = true;
       } else {
@@ -106,7 +134,10 @@
 
       const slicesEl = document.createElement('div');
       slicesEl.className = 'slices';
-      slicesEl.textContent = `${p.slices} fatias`;
+      slicesEl.innerHTML = `<span class="count">${p.slices}</span> ${getSliceLabel(
+        currentFoodType,
+        p.slices
+      )}`;
 
       info.appendChild(nameEl);
       info.appendChild(slicesEl);

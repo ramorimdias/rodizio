@@ -103,6 +103,66 @@ form.card select {
   font-weight: 600;
 }
 
+.food-options {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.food-option {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  cursor: pointer;
+}
+
+.food-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  margin: 0;
+}
+
+.food-option-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 2px solid #eee;
+  background: #fafafa;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.food-option-content img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.food-option-content span {
+  font-weight: 600;
+  color: #444;
+}
+
+.food-option input:checked + .food-option-content {
+  border-color: #f95f62;
+  box-shadow: 0 0 0 3px rgba(249, 95, 98, 0.2);
+}
+
+.food-option input:checked + .food-option-content span {
+  color: #f95f62;
+}
+
+.food-option:hover .food-option-content {
+  border-color: #f95f62;
+}
+
 .radio-group {
   display: flex;
   flex-direction: column;
@@ -126,6 +186,18 @@ form.card select {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+}
+
+.group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.group-title img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .group-actions {
@@ -186,6 +258,11 @@ form.card select {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+.participant.leader {
+  border: 2px solid #f95f62;
+  box-shadow: 0 4px 10px rgba(249, 95, 98, 0.2);
+}
+
 .participant .info {
   flex: 1;
 }
@@ -194,8 +271,16 @@ form.card select {
   margin-bottom: 0.25rem;
 }
 .participant .slices {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: #777;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+.participant .slices .count {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #333;
 }
 .participant .controls {
   display: flex;
