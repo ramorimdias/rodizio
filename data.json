@@ -1,0 +1,24 @@
+{
+  "groups": {
+    "7BESGK": {
+      "code": "7BESGK",
+      "createdAt": "2026-01-08T00:12:31.688Z",
+      "participants": {
+        "client1": {
+          "id": "client1",
+          "name": "Test",
+          "slices": 1,
+          "joinedAt": "2026-01-08T00:12:34.244Z",
+          "updatedAt": "2026-01-08T00:12:36.419Z"
+        }
+      },
+      "history": [
+        {
+          "at": "2026-01-08T00:12:36.419Z",
+          "participantId": "client1",
+          "delta": 1
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "pizza-rodizio",
+  "version": "1.0.0",
+  "description": "Aplicação para contar fatias de pizza em rodízio com grupos e atualização em tempo real.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
