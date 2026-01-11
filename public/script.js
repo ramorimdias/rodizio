@@ -173,6 +173,7 @@
   joinForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const code = joinCodeInput.value.trim().toUpperCase();
+    const name = joinNameInput.value.trim();
     if (!code) return;
     if (joinOptions?.classList.contains('hidden')) {
       setJoinFeedback('Carregando participantes...');
