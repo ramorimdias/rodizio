@@ -19,6 +19,16 @@
       localStorage.setItem(`participantName:${code}`, name);
     }
   }
+
+  async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
   // Grab elements from the DOM.
   const showCreateBtn = document.getElementById('show-create');
   const showJoinBtn = document.getElementById('show-join');
@@ -88,7 +98,9 @@
     }
     setJoinFeedback('');
     try {
-      const response = await fetch(`/group-info?code=${encodeURIComponent(code)}`);
+      const response = await fetchWithTimeout(
+        `/group-info?code=${encodeURIComponent(code)}`
+      );
       const result = await response.json();
       if (!response.ok) {
         return {
@@ -100,10 +112,14 @@
       return { code, participants: result.participants || [] };
     } catch (err) {
       console.error(err);
+      const errorMessage =
+        err && err.name === 'AbortError'
+          ? 'Tempo esgotado ao buscar participantes.'
+          : 'Falha ao buscar participantes.';
       return {
         code,
         participants: [],
-        errorMessage: 'Falha ao buscar participantes.'
+        errorMessage
       };
     }
   }
@@ -129,16 +145,15 @@
   }
 
   loadParticipantsBtn?.addEventListener('click', async () => {
-    joinOptions?.classList.remove('hidden');
-    setJoinMode(document.querySelector('input[name="join-mode"]:checked')?.value || 'new');
     setJoinFeedback('Carregando participantes...');
     loadParticipantsBtn.disabled = true;
     const result = await loadParticipants();
     loadParticipantsBtn.disabled = false;
     if (!result) {
-      setJoinFeedback('Por favor, insira o código do grupo.');
       return;
     }
+    joinOptions?.classList.remove('hidden');
+    setJoinMode(document.querySelector('input[name="join-mode"]:checked')?.value || 'new');
     renderParticipantsList(result.participants);
     setJoinFeedback(result.errorMessage || '');
   });
@@ -155,11 +170,13 @@
     const code = joinCodeInput.value.trim().toUpperCase();
     if (!code) return;
     if (joinOptions?.classList.contains('hidden')) {
+      setJoinFeedback('Carregando participantes...');
       const result = await loadParticipants();
       if (!result) return;
       renderParticipantsList(result.participants);
       joinOptions.classList.remove('hidden');
       setJoinMode(document.querySelector('input[name="join-mode"]:checked')?.value || 'new');
+      setJoinFeedback(result.errorMessage || '');
       return;
     }
     const selectedMode =
