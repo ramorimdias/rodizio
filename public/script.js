@@ -199,18 +199,79 @@
     }
     setJoinFeedback('');
     try {
-      const response = await fetch('/join-group', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, name })
-      });
-      const result = await response.json();
-      if (response.ok) {
-        const participantId = result.participantId || generateParticipantId();
-        storeParticipantForGroup(code, participantId, name);
-        window.location.href = `/group.html?code=${encodeURIComponent(code)}`;
+      // Determine if the user chose to join as a new participant or rejoin
+      // an existing one.  When the "existing" mode is selected we honour
+      // the selected participant from the drop‑down and send its ID and
+      // stored name to the server.  Otherwise we perform name‑based
+      // matching as before.
+      const mode = document.querySelector('input[name="join-mode"]:checked')?.value || 'new';
+      let body;
+      let finalId;
+      let finalName;
+      if (mode === 'existing' && joinExistingSelect && joinExistingSelect.value) {
+        // The user selected an existing participant to rejoin.  Use its
+        // ID from the option value and the name from the dataset.  This
+        // bypasses the name entry and ensures the correct identity is
+        // resumed.
+        const selectedId = joinExistingSelect.value;
+        const selectedName =
+          joinExistingSelect.options[joinExistingSelect.selectedIndex].dataset.name || name;
+        body = { code, name: selectedName, participantId: selectedId };
+        const response = await fetch('/join-group', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const result = await response.json();
+        if (response.ok) {
+          finalId = result.participantId || selectedId;
+          finalName = (result.participant && result.participant.name) || selectedName;
+          storeParticipantForGroup(code, finalId, finalName);
+          window.location.href = `/group.html?code=${encodeURIComponent(code)}`;
+        } else {
+          setJoinFeedback(result.error || 'Erro ao entrar no grupo');
+        }
       } else {
-        setJoinFeedback(result.error || 'Erro ao entrar no grupo');
+        // User is joining as a new participant.  Check if we have a stored
+        // identity for this group and only reuse it if the name matches.
+        let storedId = localStorage.getItem(`participantId:${code}`);
+        let storedName = localStorage.getItem(`participantName:${code}`);
+        let participantIdToSend = null;
+        if (
+          storedId &&
+          storedName &&
+          storedName.trim().toLowerCase() === name.trim().toLowerCase()
+        ) {
+          participantIdToSend = storedId;
+        } else {
+          // Names do not match or no stored participant: remove old keys so
+          // a fresh identity will be generated
+          localStorage.removeItem(`participantId:${code}`);
+          localStorage.removeItem(`participantName:${code}`);
+          // Also clear global keys to avoid accidentally reusing them across
+          // different groups
+          localStorage.removeItem('participantId');
+          localStorage.removeItem('participantName');
+        }
+        body = { code, name };
+        if (participantIdToSend) {
+          body.participantId = participantIdToSend;
+        }
+        const response = await fetch('/join-group', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const result = await response.json();
+        if (response.ok) {
+          finalId = result.participantId || participantIdToSend || generateParticipantId();
+          finalName =
+            (result.participant && result.participant.name) || name;
+          storeParticipantForGroup(code, finalId, finalName);
+          window.location.href = `/group.html?code=${encodeURIComponent(code)}`;
+        } else {
+          setJoinFeedback(result.error || 'Erro ao entrar no grupo');
+        }
       }
     } catch (err) {
       console.error(err);
