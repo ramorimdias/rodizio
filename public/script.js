@@ -121,9 +121,17 @@
     }
   }
 
+  const foodLabels = {
+    pizza: { unit: 'fatia', plural: 'fatias' },
+    japones: { unit: 'peça', plural: 'peças' },
+    hamburger: { unit: 'porção', plural: 'porções' },
+    pastel: { unit: 'porção', plural: 'porções' },
+    churrasco: { unit: 'porção', plural: 'porções' }
+  };
+
   function getSliceLabel(foodType, count) {
-    const unit = foodType === 'japones' ? 'peça' : 'fatia';
-    return count === 1 ? unit : `${unit}s`;
+    const config = foodLabels[foodType] || foodLabels.pizza;
+    return count === 1 ? config.unit : config.plural;
   }
 
   function renderParticipantsList(participants, foodType = 'pizza') {
