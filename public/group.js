@@ -19,7 +19,7 @@
   // Ensure we have a name (optional but helps SSE / display).
   let participantName = localStorage.getItem('participantName') || '';
   if (!participantName) {
-    participantName = 'Anônimo';
+    participantName = 'AnÃ´nimo';
     localStorage.setItem('participantName', participantName);
   }
 
@@ -35,10 +35,10 @@
     try {
       await navigator.clipboard.writeText(code);
       copyBtn.textContent = 'Copiado!';
-      setTimeout(() => (copyBtn.textContent = 'Copiar código'), 2000);
+      setTimeout(() => (copyBtn.textContent = 'Copiar cÃ³digo'), 2000);
     } catch (err) {
       console.error(err);
-      alert('Não foi possível copiar');
+      alert('NÃ£o foi possÃ­vel copiar');
     }
   });
 
@@ -74,6 +74,8 @@
 
   function renderParticipants(participants) {
     participantsEl.innerHTML = '';
+    const maxSlices = Math.max(0, ...participants.map((p) => p.slices || 0));
+    let crownAssigned = false;
     participants.forEach((p) => {
       const row = document.createElement('div');
       row.className = 'participant';
@@ -83,7 +85,12 @@
 
       const nameEl = document.createElement('div');
       nameEl.className = 'name';
-      nameEl.textContent = p.name;
+      if (!crownAssigned && p.slices === maxSlices) {
+        nameEl.textContent = `ðŸ‘‘ ${p.name}`;
+        crownAssigned = true;
+      } else {
+        nameEl.textContent = p.name;
+      }
 
       const slicesEl = document.createElement('div');
       slicesEl.className = 'slices';
