@@ -90,17 +90,13 @@
     }
   });
 
-  async function loadParticipants({ showLoadingMessage = false } = {}) {
+  async function loadParticipants() {
     const code = joinCodeInput.value.trim().toUpperCase();
     if (!code) {
       setJoinFeedback('Por favor, insira o código do grupo.');
       return null;
     }
-    if (showLoadingMessage) {
-      setJoinFeedback('Carregando participantes...');
-    } else {
-      setJoinFeedback('');
-    }
+    setJoinFeedback('');
     try {
       const response = await fetchWithTimeout(
         `/group-info?code=${encodeURIComponent(code)}`
@@ -151,7 +147,7 @@
   loadParticipantsBtn?.addEventListener('click', async () => {
     setJoinFeedback('Carregando participantes...');
     loadParticipantsBtn.disabled = true;
-    const result = await loadParticipants({ showLoadingMessage: true });
+    const result = await loadParticipants();
     loadParticipantsBtn.disabled = false;
     if (!result) {
       return;
