@@ -37,13 +37,6 @@
   const createNameInput = document.getElementById('create-name');
   const joinCodeInput = document.getElementById('join-code');
   const joinNameInput = document.getElementById('join-name');
-  const loadParticipantsBtn = document.getElementById('load-participants');
-  const joinOptions = document.getElementById('join-options');
-  const joinModeInputs = document.querySelectorAll('input[name="join-mode"]');
-  const joinNewPanel = document.getElementById('join-new');
-  const joinExistingPanel = document.getElementById('join-existing');
-  const joinExistingSelect = document.getElementById('join-existing-select');
-  const joinExistingEmpty = document.getElementById('join-existing-empty');
   const joinFeedback = document.getElementById('join-feedback');
 
   function setJoinFeedback(message) {
@@ -179,36 +172,28 @@
       setJoinFeedback(result.errorMessage || '');
       return;
     }
-    const selectedMode =
-      document.querySelector('input[name="join-mode"]:checked')?.value || 'new';
-    let name = '';
-    let participantId = '';
-    if (selectedMode === 'existing') {
-      const selectedOption = joinExistingSelect?.selectedOptions?.[0];
-      if (!selectedOption) return;
-      participantId = selectedOption.value;
-      name = selectedOption.dataset.name || selectedOption.textContent || '';
-    } else {
-      name = joinNameInput.value.trim();
-      if (!name) return;
-      participantId = generateParticipantId();
+    if (!name) {
+      setJoinFeedback('Por favor, insira o seu nome.');
+      return;
     }
+    setJoinFeedback('');
     try {
       const response = await fetch('/join-group', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, name, participantId })
+        body: JSON.stringify({ code, name })
       });
       const result = await response.json();
       if (response.ok) {
+        const participantId = result.participantId || generateParticipantId();
         storeParticipantForGroup(code, participantId, name);
         window.location.href = `/group.html?code=${encodeURIComponent(code)}`;
       } else {
-        alert(result.error || 'Erro ao entrar no grupo');
+        setJoinFeedback(result.error || 'Erro ao entrar no grupo');
       }
     } catch (err) {
       console.error(err);
-      alert('Falha ao entrar no grupo');
+      setJoinFeedback('Falha ao entrar no grupo');
     }
   });
 })();

@@ -24,33 +24,10 @@
       <h2>Entrar em grupo</h2>
       <label for="join-code">Código do grupo</label>
       <input type="text" id="join-code" placeholder="Ex: ABC123" required />
-      <button type="button" id="load-participants" class="secondary">Continuar</button>
+      <label for="join-name">Seu nome</label>
+      <input type="text" id="join-name" placeholder="Digite seu nome" required />
+      <button type="submit" class="secondary">Entrar</button>
       <p id="join-feedback" class="help-text hidden" role="status"></p>
-      <div id="join-options" class="hidden">
-        <p class="section-label">Como deseja entrar?</p>
-        <div class="radio-group">
-          <label>
-            <input type="radio" name="join-mode" value="new" checked />
-            Novo participante
-          </label>
-          <label>
-            <input type="radio" name="join-mode" value="existing" />
-            Já estou participando
-          </label>
-        </div>
-        <div id="join-new" class="join-panel">
-          <label for="join-name">Seu nome</label>
-          <input type="text" id="join-name" placeholder="Digite seu nome" />
-        </div>
-        <div id="join-existing" class="join-panel hidden">
-          <label for="join-existing-select">Participante</label>
-          <select id="join-existing-select"></select>
-          <p id="join-existing-empty" class="help-text hidden">
-            Nenhum participante encontrado neste grupo.
-          </p>
-        </div>
-        <button type="submit" class="primary">Entrar</button>
-      </div>
     </form>
   </main>
   <script src="script.js"></script>

@@ -37,6 +37,22 @@ function generateCode() {
   return result;
 }
 
+function generateParticipantId() {
+  return `id-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function normalizeName(value) {
+  return (value || '').trim().toLowerCase();
+}
+
+function findParticipantByName(group, name) {
+  const target = normalizeName(name);
+  if (!target) return null;
+  return Object.values(group.participants || {}).find(
+    (participant) => normalizeName(participant.name) === target
+  );
+}
+
 // In‑memory data store and SSE connections.
 const data = loadData();
 // Map of group code -> Set of SSE connections (response objects).
@@ -142,9 +158,9 @@ function handlePost(req, res) {
     }
     if (req.url === '/join-group') {
       const { code, name, participantId } = payload || {};
-      if (!code || !name || !participantId) {
+      if (!code || !name) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'code, name and participantId are required' }));
+        res.end(JSON.stringify({ error: 'code and name are required' }));
         return;
       }
       const group = data.groups[code];
@@ -153,15 +169,26 @@ function handlePost(req, res) {
         res.end(JSON.stringify({ error: 'group not found' }));
         return;
       }
-      const participant = group.participants[participantId];
+      const matchedByName = findParticipantByName(group, name);
+      let resolvedParticipantId = participantId || '';
+      let participant = null;
+      if (matchedByName) {
+        resolvedParticipantId = matchedByName.id;
+        participant = matchedByName;
+      } else if (resolvedParticipantId) {
+        participant = group.participants[resolvedParticipantId];
+      }
       if (participant) {
         if (participant.name !== name) {
           participant.name = name;
-          participant.updatedAt = now;
         }
+        participant.updatedAt = now;
       } else {
-        group.participants[participantId] = {
-          id: participantId,
+        if (!resolvedParticipantId) {
+          resolvedParticipantId = generateParticipantId();
+        }
+        group.participants[resolvedParticipantId] = {
+          id: resolvedParticipantId,
           name,
           slices: 0,
           joinedAt: now,
@@ -170,7 +197,7 @@ function handlePost(req, res) {
       }
       saveData();
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ code }));
+      res.end(JSON.stringify({ code, participantId: resolvedParticipantId }));
       broadcastGroupState(code);
       return;
     }
