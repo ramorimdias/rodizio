@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rodízio de Pizza</title>
+  <title>Rodízio</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main id="home" class="container">
-    <h1>Rodízio de Pizza</h1>
-    <p class="subtitle">Acompanhe quantas fatias cada um come em tempo real.</p>
+    <h1>Rodízio</h1>
+    <p class="subtitle">Acompanhe quantas porções cada um come em tempo real.</p>
     <div class="actions">
       <button id="show-create" class="primary">Criar grupo</button>
       <button id="show-join" class="secondary">Entrar em grupo</button>
@@ -18,6 +18,19 @@
       <h2>Criar grupo</h2>
       <label for="create-name">Seu nome</label>
       <input type="text" id="create-name" placeholder="Digite seu nome" required />
+      <p class="section-label">Tipo de rodízio</p>
+      <div class="food-options" role="radiogroup" aria-label="Escolha o tipo de rodízio">
+        <label class="food-option">
+          <input type="radio" name="food-type" value="pizza" checked />
+          <img src="pizza.png" alt="Pizza" />
+          <span>Pizza</span>
+        </label>
+        <label class="food-option">
+          <input type="radio" name="food-type" value="japones" />
+          <img src="uramaki.png" alt="Japonês" />
+          <span>Japonês</span>
+        </label>
+      </div>
       <button type="submit" class="primary">Criar</button>
     </form>
     <form id="join-form" class="hidden card">
