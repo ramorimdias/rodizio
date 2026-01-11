@@ -168,13 +168,7 @@ function handleGroupPage() {
         groupCode = data.code;
         // Estabelece conexão SSE
         connectEventStream(groupCode);
-        if (Array.isArray(data.participants) && data.participants.length) {
-          renderParticipants(data.participants);
-        } else if (data.participant) {
-          renderParticipants([data.participant]);
-        } else {
-          renderParticipants([{ id: myId, name, slices: 0 }]);
-        }
+        renderParticipants([{ id: myId, name, slices: 0 }]);
       }).catch(err => {
         msgEl.textContent = 'Falha na comunicação com o servidor.';
       });
