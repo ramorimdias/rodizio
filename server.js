@@ -90,7 +90,10 @@ function broadcastGroupState(code) {
   const group = data.groups[code];
   if (!group) return;
   const participants = buildParticipantsList(group);
-  const payload = JSON.stringify({ participants });
+  const payload = JSON.stringify({
+    participants,
+    foodType: group.foodType || 'pizza'
+  });
   (sseConnections[code] || []).forEach((res) => {
     try {
       res.write(`data: ${payload}\n\n`);
@@ -142,12 +145,14 @@ function handlePost(req, res) {
         res.end(JSON.stringify({ error: 'name and participantId are required' }));
         return;
       }
+      const foodType = payload.foodType === 'japones' ? 'japones' : 'pizza';
       let code;
       do {
         code = generateCode();
       } while (data.groups[code]);
       data.groups[code] = {
         code,
+        foodType,
         createdAt: now,
         participants: {
           [participantId]: {
@@ -215,6 +220,7 @@ function handlePost(req, res) {
       res.end(
         JSON.stringify({
           code,
+          foodType: group.foodType || 'pizza',
           participantId: resolvedParticipantId,
           participant: participant
             ? { id: participant.id, name: participant.name, slices: participant.slices }
@@ -371,7 +377,7 @@ function handleGroupInfo(req, res) {
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
   res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ participants }));
+  res.end(JSON.stringify({ participants, foodType: group.foodType || 'pizza' }));
 }
 
 // Create and start the HTTP server.
