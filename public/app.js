@@ -91,6 +91,7 @@ function handleGroupPage() {
   let groupCodeParam = params.code || null;
   const nameParam = (params.name || '').trim();
   const infoEl = document.getElementById('group-code');
+  const copyBtn = document.getElementById('copy-code');
   const msgEl = document.getElementById('msg');
   const listEl = document.getElementById('participants-list');
   if (!createFlag && !groupCodeParam) {
@@ -111,6 +112,31 @@ function handleGroupPage() {
     localStorage.setItem(localKey, myId);
   }
   let groupCode = null;
+  function setGroupCodeUI(code) {
+    infoEl.textContent = code;
+    if (!copyBtn) return;
+    copyBtn.disabled = false;
+    copyBtn.onclick = () => {
+      const text = code;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+          .then(() => {
+            msgEl.textContent = 'Código copiado!';
+          })
+          .catch(() => {
+            msgEl.textContent = 'Não foi possível copiar automaticamente.';
+          });
+      } else {
+        const temp = document.createElement('input');
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        msgEl.textContent = 'Código copiado!';
+      }
+    };
+  }
   // Função para entrar no grupo via API
   function joinGroup(code, name) {
     fetch('/join-group', {
@@ -213,7 +239,7 @@ function handleGroupPage() {
           return;
         }
         groupCode = data.code;
-        infoEl.textContent = `Código do grupo: ${groupCode}`;
+        setGroupCodeUI(groupCode);
         joinGroup(groupCode, nameParam);
       })
       .catch(() => {
@@ -221,7 +247,7 @@ function handleGroupPage() {
       });
   } else {
     groupCode = (groupCodeParam || '').toString().toUpperCase();
-    infoEl.textContent = `Código do grupo: ${groupCode}`;
+    setGroupCodeUI(groupCode);
     joinGroup(groupCode, nameParam);
   }
 }
