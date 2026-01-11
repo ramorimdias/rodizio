@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rodízio de Pizza</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="home" class="container">
+    <h1>Rodízio de Pizza</h1>
+    <p class="subtitle">Acompanhe quantas fatias cada um come em tempo real.</p>
+    <div class="actions">
+      <button id="show-create" class="primary">Criar grupo</button>
+      <button id="show-join" class="secondary">Entrar em grupo</button>
+    </div>
+    <form id="create-form" class="hidden card">
+      <h2>Criar grupo</h2>
+      <label for="create-name">Seu nome</label>
+      <input type="text" id="create-name" placeholder="Digite seu nome" required />
+      <button type="submit" class="primary">Criar</button>
+    </form>
+    <form id="join-form" class="hidden card">
+      <h2>Entrar em grupo</h2>
+      <label for="join-code">Código do grupo</label>
+      <input type="text" id="join-code" placeholder="Ex: ABC123" required />
+      <label for="join-name">Seu nome</label>
+      <input type="text" id="join-name" placeholder="Digite seu nome" required />
+      <button type="submit" class="primary">Entrar</button>
+    </form>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

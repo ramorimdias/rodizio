@@ -1,0 +1,17 @@
+{
+  "groups": {
+    "F8EC8A": {
+      "code": "F8EC8A",
+      "createdAt": "2026-01-11T21:19:11.362Z",
+      "participants": {
+        "test-123": {
+          "id": "test-123",
+          "name": "Tester",
+          "slices": 0,
+          "joinedAt": "2026-01-11T21:19:11.362Z",
+          "updatedAt": "2026-01-11T21:19:11.362Z"
+        }
+      }
+    }
+  }
+}
