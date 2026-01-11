@@ -20,6 +20,15 @@
     }
   }
 
+  async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
   // Grab elements from the DOM.
   const showCreateBtn = document.getElementById('show-create');
   const showJoinBtn = document.getElementById('show-join');
@@ -74,13 +83,93 @@
     }
   });
 
+  async function loadParticipants() {
+    const code = joinCodeInput.value.trim().toUpperCase();
+    if (!code) {
+      setJoinFeedback('Por favor, insira o código do grupo.');
+      return null;
+    }
+    setJoinFeedback('');
+    try {
+      const response = await fetchWithTimeout(
+        `/group-info?code=${encodeURIComponent(code)}`
+      );
+      const result = await response.json();
+      if (!response.ok) {
+        return {
+          code,
+          participants: [],
+          errorMessage: result.error || 'Erro ao buscar participantes.'
+        };
+      }
+      return { code, participants: result.participants || [] };
+    } catch (err) {
+      console.error(err);
+      const errorMessage =
+        err && err.name === 'AbortError'
+          ? 'Tempo esgotado ao buscar participantes.'
+          : 'Falha ao buscar participantes.';
+      return {
+        code,
+        participants: [],
+        errorMessage
+      };
+    }
+  }
+
+  function renderParticipantsList(participants) {
+    if (!joinExistingSelect) return;
+    joinExistingSelect.innerHTML = '';
+    participants.forEach((participant) => {
+      const option = document.createElement('option');
+      option.value = participant.id;
+      option.textContent = `${participant.name} (${participant.slices} fatias)`;
+      option.dataset.name = participant.name;
+      joinExistingSelect.appendChild(option);
+    });
+    const hasParticipants = participants.length > 0;
+    joinExistingSelect.disabled = !hasParticipants;
+    joinExistingEmpty?.classList.toggle('hidden', hasParticipants);
+  }
+
+  function setJoinMode(mode) {
+    joinNewPanel?.classList.toggle('hidden', mode !== 'new');
+    joinExistingPanel?.classList.toggle('hidden', mode !== 'existing');
+  }
+
+  loadParticipantsBtn?.addEventListener('click', async () => {
+    setJoinFeedback('Carregando participantes...');
+    loadParticipantsBtn.disabled = true;
+    const result = await loadParticipants();
+    loadParticipantsBtn.disabled = false;
+    if (!result) {
+      return;
+    }
+    joinOptions?.classList.remove('hidden');
+    setJoinMode(document.querySelector('input[name="join-mode"]:checked')?.value || 'new');
+    renderParticipantsList(result.participants);
+    setJoinFeedback(result.errorMessage || '');
+  });
+
+  joinModeInputs.forEach((input) => {
+    input.addEventListener('change', (event) => {
+      setJoinMode(event.target.value);
+    });
+  });
+
   // Handle joining an existing group.
   joinForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const code = joinCodeInput.value.trim().toUpperCase();
-    const name = joinNameInput.value.trim();
-    if (!code) {
-      setJoinFeedback('Por favor, insira o código do grupo.');
+    if (!code) return;
+    if (joinOptions?.classList.contains('hidden')) {
+      setJoinFeedback('Carregando participantes...');
+      const result = await loadParticipants();
+      if (!result) return;
+      renderParticipantsList(result.participants);
+      joinOptions.classList.remove('hidden');
+      setJoinMode(document.querySelector('input[name="join-mode"]:checked')?.value || 'new');
+      setJoinFeedback(result.errorMessage || '');
       return;
     }
     if (!name) {
