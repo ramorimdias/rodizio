@@ -45,6 +45,10 @@ function normalizeName(value) {
   return (value || '').trim().toLowerCase();
 }
 
+function normalizeGroupCode(value) {
+  return (value || '').toString().trim().toUpperCase();
+}
+
 function findParticipantByName(group, name) {
   const target = normalizeName(name);
   if (!target) return null;
@@ -174,7 +178,8 @@ function handlePost(req, res) {
       return;
     }
     if (req.url === '/join-group') {
-      const { code, name, participantId } = payload || {};
+      const { name, participantId } = payload || {};
+      const code = normalizeGroupCode(payload && payload.code);
       if (!code || !name) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'code and name are required' }));
@@ -236,7 +241,8 @@ function handlePost(req, res) {
       return;
     }
     if (req.url === '/update-slices') {
-      const { code, participantId, delta } = payload || {};
+      const { participantId, delta } = payload || {};
+      const code = normalizeGroupCode(payload && payload.code);
       if (!code || !participantId || typeof delta !== 'number') {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'code, participantId and numeric delta are required' }));
@@ -301,7 +307,7 @@ function serveStatic(req, res) {
  */
 function handleSse(req, res) {
   const urlObj = new URL(req.url, `http://${req.headers.host}`);
-  const code = urlObj.searchParams.get('code');
+  const code = normalizeGroupCode(urlObj.searchParams.get('code'));
   const participantId = urlObj.searchParams.get('participantId');
   const name = urlObj.searchParams.get('name');
   if (!code || !participantId) {
@@ -361,7 +367,7 @@ function handleSse(req, res) {
  */
 function handleGroupInfo(req, res) {
   const urlObj = new URL(req.url, `http://${req.headers.host}`);
-  const code = urlObj.searchParams.get('code');
+  const code = normalizeGroupCode(urlObj.searchParams.get('code'));
   if (!code) {
     res.writeHead(400, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'code is required' }));
