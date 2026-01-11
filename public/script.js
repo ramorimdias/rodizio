@@ -62,14 +62,12 @@
     e.preventDefault();
     const name = createNameInput.value.trim();
     if (!name) return;
-    const foodType =
-      document.querySelector('input[name="food-type"]:checked')?.value || 'pizza';
     const participantId = generateParticipantId();
     try {
       const response = await fetch('/create-group', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, participantId, foodType })
+        body: JSON.stringify({ name, participantId })
       });
       const result = await response.json();
       if (response.ok && result.code) {
@@ -101,11 +99,10 @@
         return {
           code,
           participants: [],
-          errorMessage: result.error || 'Erro ao buscar participantes.',
-          foodType: result.foodType || 'pizza'
+          errorMessage: result.error || 'Erro ao buscar participantes.'
         };
       }
-      return { code, participants: result.participants || [], foodType: result.foodType || 'pizza' };
+      return { code, participants: result.participants || [] };
     } catch (err) {
       console.error(err);
       const errorMessage =
@@ -115,27 +112,18 @@
       return {
         code,
         participants: [],
-        errorMessage,
-        foodType: 'pizza'
+        errorMessage
       };
     }
   }
 
-  function getSliceLabel(foodType, count) {
-    const unit = foodType === 'japones' ? 'peça' : 'fatia';
-    return count === 1 ? unit : `${unit}s`;
-  }
-
-  function renderParticipantsList(participants, foodType = 'pizza') {
+  function renderParticipantsList(participants) {
     if (!joinExistingSelect) return;
     joinExistingSelect.innerHTML = '';
     participants.forEach((participant) => {
       const option = document.createElement('option');
       option.value = participant.id;
-      option.textContent = `${participant.name} (${participant.slices} ${getSliceLabel(
-        foodType,
-        participant.slices
-      )})`;
+      option.textContent = `${participant.name} (${participant.slices} fatias)`;
       option.dataset.name = participant.name;
       joinExistingSelect.appendChild(option);
     });
@@ -159,7 +147,7 @@
     }
     joinOptions?.classList.remove('hidden');
     setJoinMode(document.querySelector('input[name="join-mode"]:checked')?.value || 'new');
-    renderParticipantsList(result.participants, result.foodType);
+    renderParticipantsList(result.participants);
     setJoinFeedback(result.errorMessage || '');
   });
 
@@ -179,7 +167,7 @@
       setJoinFeedback('Carregando participantes...');
       const result = await loadParticipants();
       if (!result) return;
-      renderParticipantsList(result.participants, result.foodType);
+      renderParticipantsList(result.participants);
       joinOptions.classList.remove('hidden');
       setJoinMode(document.querySelector('input[name="join-mode"]:checked')?.value || 'new');
       setJoinFeedback(result.errorMessage || '');
