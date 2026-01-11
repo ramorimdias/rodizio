@@ -22,46 +22,6 @@ h1 {
   margin-bottom: 1em;
 }
 
-.group-code-wrapper {
-  background: #fff4e5;
-  border: 1px solid #ffd8a8;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 16px;
-}
-
-.group-code-label {
-  display: block;
-  font-size: 0.8em;
-  color: #6b4b16;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.group-code-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
-.group-code {
-  font-size: 1.6em;
-  letter-spacing: 0.2em;
-  color: #b45309;
-}
-
-.copy-btn {
-  background: #fb8c00;
-  padding: 8px 16px;
-  margin: 0;
-}
-
-.copy-btn:hover {
-  background: #ef6c00;
-}
-
 button {
   display: inline-block;
   padding: 12px 24px;
