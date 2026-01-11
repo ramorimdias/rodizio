@@ -154,10 +154,10 @@ function handleGroupPage() {
     fetch('/join-group', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, name, id: myId })
+      body: JSON.stringify({ code, name, participantId: myId })
     }).then(response => response.json())
       .then(data => {
-        if (!data.ok) {
+        if (!data.code) {
           msgEl.textContent = data.error || 'Erro ao entrar no grupo.';
           return;
         }
@@ -177,12 +177,14 @@ function handleGroupPage() {
       return;
     }
     if (eventSource) eventSource.close();
-    eventSource = new EventSource(`/events?code=${encodeURIComponent(code)}&id=${encodeURIComponent(myId)}`);
+    eventSource = new EventSource(
+      `/events?code=${encodeURIComponent(code)}&participantId=${encodeURIComponent(myId)}&name=${encodeURIComponent(nameParam)}`
+    );
     if (pollTimer) {
       clearInterval(pollTimer);
       pollTimer = null;
     }
-    eventSource.addEventListener('update', ev => {
+    eventSource.onmessage = ev => {
       try {
         const data = JSON.parse(ev.data);
         renderParticipants(data.participants || []);
@@ -190,7 +192,7 @@ function handleGroupPage() {
       } catch (_err) {
         // ignora erros de parse
       }
-    });
+    };
     eventSource.onerror = () => {
       // Reconectar automaticamente após algum tempo
       msgEl.textContent = 'Reconectando ao grupo...';
@@ -201,12 +203,10 @@ function handleGroupPage() {
   function startPolling(code) {
     if (pollTimer) return;
     const poll = () => {
-      fetch(`/group-state?code=${encodeURIComponent(code)}`)
+      fetch(`/group-info?code=${encodeURIComponent(code)}`)
         .then(response => response.json())
         .then(data => {
-          if (data.ok) {
-            renderParticipants(data.participants || []);
-          }
+          renderParticipants(data.participants || []);
         })
         .catch(() => {
           msgEl.textContent = 'Falha ao atualizar o grupo.';
@@ -265,7 +265,7 @@ function handleGroupPage() {
     fetch('/update-slices', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: groupCode, id: myId, delta })
+      body: JSON.stringify({ code: groupCode, participantId: myId, delta })
     }).catch(() => {
       // erro silencioso
     });
@@ -273,17 +273,21 @@ function handleGroupPage() {
   // Antes de sair ou recarregar, remove participante explicitamente
   window.addEventListener('beforeunload', () => {
     if (groupCode) {
-      navigator.sendBeacon('/leave-group', JSON.stringify({ code: groupCode, id: myId }));
+      navigator.sendBeacon('/leave-group', JSON.stringify({ code: groupCode, participantId: myId }));
     }
     if (pollTimer) clearInterval(pollTimer);
   });
   // Decide criação ou entrada
   if (createFlag) {
     // Cria grupo
-    fetch('/create-group', { method: 'POST' })
+    fetch('/create-group', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: nameParam, participantId: myId })
+    })
       .then(response => response.json())
       .then(data => {
-        if (!data.ok) {
+        if (!data.code) {
           msgEl.textContent = data.error || 'Erro ao criar grupo.';
           return;
         }
