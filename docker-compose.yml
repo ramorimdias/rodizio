@@ -3,12 +3,16 @@ services:
     image: node:20-alpine
     container_name: rodizio-app
     working_dir: /app
-    command: ["node", "server.js"]
+    # instala deps se existirem e sobe
+    command: sh -lc "npm install --omit=dev >/dev/null 2>&1 || true; node server.js"
     restart: unless-stopped
     environment:
       - PORT=3000
+      - NODE_ENV=production
     volumes:
-      - ./:/app
+      - ./server.js:/app/server.js:ro
+      - ./package.json:/app/package.json:ro
+      - ./public:/app/public:ro
       - ./data.json:/app/data.json
     networks:
       - aio_network
@@ -18,9 +22,11 @@ services:
       - "traefik.http.routers.rodizio.entrypoints=websecure"
       - "traefik.http.routers.rodizio.tls=true"
       - "traefik.http.services.rodizio.loadbalancer.server.port=3000"
-      - "traefik.http.middlewares.rodizio-nobuffer.buffering.maxResponseBodyBytes=0"
-      - "traefik.http.routers.rodizio.middlewares=rodizio-nobuffer@docker"
 
+      # MUITO importante para SSE
+      - "traefik.http.middlewares.rodizio-headers.headers.customResponseHeaders.Cache-Control=no-cache"
+      - "traefik.http.middlewares.rodizio-headers.headers.customResponseHeaders.Connection=keep-alive"
+      - "traefik.http.routers.rodizio.middlewares=rodizio-headers@docker"
 networks:
   aio_network:
     external: true

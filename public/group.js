@@ -1,38 +1,54 @@
 (() => {
-  // Parse the group code from the query string.  If none is present
-  // redirect back to the home page.
+  // Parse the group code from the query string. If none is present, redirect.
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   if (!code) {
     window.location.href = '/';
     return;
   }
-  const participantId = localStorage.getItem('participantId');
-  const participantName = localStorage.getItem('participantName') || '';
+
+  // Ensure we have a stable participantId across reloads.
+  let participantId = localStorage.getItem('participantId');
+  if (!participantId) {
+    participantId =
+      (crypto?.randomUUID?.() ||
+        `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+    localStorage.setItem('participantId', participantId);
+  }
+
+  // Ensure we have a name (optional but helps SSE / display).
+  let participantName = localStorage.getItem('participantName') || '';
+  if (!participantName) {
+    participantName = 'Anônimo';
+    localStorage.setItem('participantName', participantName);
+  }
+
   const groupCodeEl = document.getElementById('group-code');
   const copyBtn = document.getElementById('copy-code');
   const participantsEl = document.getElementById('participants');
+
   // Show the group code on screen.
   groupCodeEl.textContent = code;
-  // Provide a convenient way to copy the code to the clipboard.
+
+  // Copy code button
   copyBtn.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(code);
       copyBtn.textContent = 'Copiado!';
-      setTimeout(() => (copyBtn.textContent = 'Copiar cÃ³digo'), 2000);
+      setTimeout(() => (copyBtn.textContent = 'Copiar código'), 2000);
     } catch (err) {
       console.error(err);
-      alert('NÃ£o foi possÃ­vel copiar');
+      alert('Não foi possível copiar');
     }
   });
-  // Establish an SSE (Serverâ€‘Sent Events) connection to receive realâ€‘time
-  // updates.  The EventSource API automatically reconnects if the
-  // connection drops.  We send the group code, participantId and name
-  // as query parameters to allow the server to identify this client.
+
+  // SSE connection
   const sseUrl = `/events?code=${encodeURIComponent(code)}&participantId=${encodeURIComponent(
     participantId
   )}&name=${encodeURIComponent(participantName)}`;
+
   const evtSource = new EventSource(sseUrl);
+
   evtSource.onmessage = (event) => {
     try {
       const msg = JSON.parse(event.data);
@@ -43,12 +59,11 @@
       console.error('Erro ao processar evento SSE:', err);
     }
   };
+
   evtSource.onerror = (err) => {
     console.error('Erro SSE:', err);
   };
-  // Send an update message via HTTP.  We call the REST endpoint
-  // /update-slices with the delta.  The server ensures the value never
-  // goes below zero and broadcasts the updated state via SSE.
+
   function updateSlices(delta) {
     fetch('/update-slices', {
       method: 'POST',
@@ -56,43 +71,49 @@
       body: JSON.stringify({ code, participantId, delta })
     }).catch((err) => console.error(err));
   }
-  // Render the list of participants.  Each entry shows the name,
-  // slice count and, for the current user, buttons to increment or
-  // decrement the count.  We ensure values never go negative by
-  // disabling the âˆ’ button at zero.
+
   function renderParticipants(participants) {
     participantsEl.innerHTML = '';
     participants.forEach((p) => {
       const row = document.createElement('div');
       row.className = 'participant';
+
       const info = document.createElement('div');
       info.className = 'info';
+
       const nameEl = document.createElement('div');
       nameEl.className = 'name';
       nameEl.textContent = p.name;
+
       const slicesEl = document.createElement('div');
       slicesEl.className = 'slices';
       slicesEl.textContent = `${p.slices} fatias`;
+
       info.appendChild(nameEl);
       info.appendChild(slicesEl);
       row.appendChild(info);
-      // If this is the current participant show controls.
+
+      // Only the current user can change their own count
       if (p.id === participantId) {
         const controls = document.createElement('div');
         controls.className = 'controls';
+
         const minus = document.createElement('button');
-        minus.textContent = 'âˆ’';
+        minus.textContent = '-';
         minus.className = 'secondary';
         minus.disabled = p.slices === 0;
         minus.addEventListener('click', () => updateSlices(-1));
+
         const plus = document.createElement('button');
         plus.textContent = '+';
         plus.className = 'primary';
         plus.addEventListener('click', () => updateSlices(1));
+
         controls.appendChild(minus);
         controls.appendChild(plus);
         row.appendChild(controls);
       }
+
       participantsEl.appendChild(row);
     });
   }
