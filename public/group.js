@@ -8,17 +8,29 @@
   }
 
   // Ensure we have a stable participantId across reloads.
-  let participantId = localStorage.getItem('participantId');
+  const participantIdKey = `participantId:${code}`;
+  const participantNameKey = `participantName:${code}`;
+  let participantId = localStorage.getItem(participantIdKey);
   if (!participantId) {
     participantId =
-      (crypto?.randomUUID?.() ||
-        `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+      localStorage.getItem('participantId') ||
+      crypto?.randomUUID?.() ||
+      `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     localStorage.setItem('participantId', participantId);
+    localStorage.setItem(participantIdKey, participantId);
   }
 
   // Ensure we have a name (optional but helps SSE / display).
-  let participantName = localStorage.getItem('participantName') || '';
+  const storedName = localStorage.getItem(participantNameKey);
+  let participantName =
+    storedName ||
+    localStorage.getItem('participantName') ||
+    '';
+  if (participantName && !storedName) {
+    localStorage.setItem(participantNameKey, participantName);
+  }
   if (!participantName) {
+    localStorage.setItem(participantNameKey, participantName);
     participantName = 'Anônimo';
     localStorage.setItem('participantName', participantName);
   }
