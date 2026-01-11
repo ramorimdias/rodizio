@@ -161,6 +161,10 @@ function handleGroupPage() {
           msgEl.textContent = data.error || 'Erro ao entrar no grupo.';
           return;
         }
+        if (data.participantId && data.participantId !== myId) {
+          myId = data.participantId;
+          localStorage.setItem(localKey, myId);
+        }
         groupCode = data.code;
         // Estabelece conexão SSE
         connectEventStream(groupCode);
