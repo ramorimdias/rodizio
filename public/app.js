@@ -91,8 +91,10 @@ function handleGroupPage() {
   let groupCodeParam = params.code || null;
   const nameParam = (params.name || '').trim();
   const infoEl = document.getElementById('group-code');
+  const copyBtn = document.getElementById('copy-code');
   const msgEl = document.getElementById('msg');
   const listEl = document.getElementById('participants-list');
+  listEl.innerHTML = '<li class="placeholder">Conectando ao grupo...</li>';
   if (!createFlag && !groupCodeParam) {
     msgEl.textContent = 'Informações insuficientes. Volte e tente novamente.';
     return;
@@ -111,6 +113,42 @@ function handleGroupPage() {
     localStorage.setItem(localKey, myId);
   }
   let groupCode = null;
+  let pollTimer = null;
+  function setGroupCodeUI(code) {
+    infoEl.textContent = code;
+    if (!copyBtn) return;
+    copyBtn.disabled = false;
+    copyBtn.onclick = () => {
+      const text = code;
+      const useClipboardApi = navigator.clipboard
+        && navigator.clipboard.writeText
+        && window.isSecureContext;
+      if (useClipboardApi) {
+        navigator.clipboard.writeText(text)
+          .then(() => {
+            msgEl.textContent = 'Código copiado!';
+          })
+          .catch(() => {
+            fallbackCopy(text);
+          });
+      } else {
+        fallbackCopy(text);
+      }
+    };
+  }
+  function fallbackCopy(text) {
+    try {
+      const temp = document.createElement('input');
+      temp.value = text;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      msgEl.textContent = 'Código copiado!';
+    } catch (_err) {
+      msgEl.textContent = 'Não foi possível copiar automaticamente.';
+    }
+  }
   // Função para entrar no grupo via API
   function joinGroup(code, name) {
     fetch('/join-group', {
@@ -126,6 +164,7 @@ function handleGroupPage() {
         groupCode = data.code;
         // Estabelece conexão SSE
         connectEventStream(groupCode);
+        renderParticipants([{ id: myId, name, slices: 0 }]);
       }).catch(err => {
         msgEl.textContent = 'Falha na comunicação com o servidor.';
       });
@@ -133,24 +172,59 @@ function handleGroupPage() {
   // Conecta ao stream SSE para receber atualizações
   let eventSource = null;
   function connectEventStream(code) {
+    if (!window.EventSource) {
+      startPolling(code);
+      return;
+    }
     if (eventSource) eventSource.close();
     eventSource = new EventSource(`/events?code=${encodeURIComponent(code)}&id=${encodeURIComponent(myId)}`);
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
     eventSource.addEventListener('update', ev => {
       try {
         const data = JSON.parse(ev.data);
         renderParticipants(data.participants || []);
+        msgEl.textContent = '';
       } catch (_err) {
         // ignora erros de parse
       }
     });
     eventSource.onerror = () => {
       // Reconectar automaticamente após algum tempo
+      msgEl.textContent = 'Reconectando ao grupo...';
+      startPolling(code);
       setTimeout(() => connectEventStream(code), 3000);
     };
+  }
+  function startPolling(code) {
+    if (pollTimer) return;
+    const poll = () => {
+      fetch(`/group-state?code=${encodeURIComponent(code)}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.ok) {
+            renderParticipants(data.participants || []);
+          }
+        })
+        .catch(() => {
+          msgEl.textContent = 'Falha ao atualizar o grupo.';
+        });
+    };
+    poll();
+    pollTimer = setInterval(poll, 4000);
   }
   // Renderiza lista de participantes com botões de controle para o usuário atual
   function renderParticipants(participants) {
     listEl.innerHTML = '';
+    if (!participants.length) {
+      const empty = document.createElement('li');
+      empty.className = 'placeholder';
+      empty.textContent = 'Nenhum participante ainda.';
+      listEl.appendChild(empty);
+      return;
+    }
     participants.forEach(part => {
       const li = document.createElement('li');
       if (part.id === myId) li.classList.add('me');
@@ -201,6 +275,7 @@ function handleGroupPage() {
     if (groupCode) {
       navigator.sendBeacon('/leave-group', JSON.stringify({ code: groupCode, id: myId }));
     }
+    if (pollTimer) clearInterval(pollTimer);
   });
   // Decide criação ou entrada
   if (createFlag) {
@@ -213,7 +288,7 @@ function handleGroupPage() {
           return;
         }
         groupCode = data.code;
-        infoEl.textContent = `Código do grupo: ${groupCode}`;
+        setGroupCodeUI(groupCode);
         joinGroup(groupCode, nameParam);
       })
       .catch(() => {
@@ -221,7 +296,7 @@ function handleGroupPage() {
       });
   } else {
     groupCode = (groupCodeParam || '').toString().toUpperCase();
-    infoEl.textContent = `Código do grupo: ${groupCode}`;
+    setGroupCodeUI(groupCode);
     joinGroup(groupCode, nameParam);
   }
 }
