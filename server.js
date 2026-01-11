@@ -77,8 +77,7 @@ function broadcastGroupState(code) {
 }
 
 /**
- * Remove an SSE connection from the registry and optionally remove
- * the participant from the group when a client disconnects.
+ * Remove an SSE connection from the registry when a client disconnects.
  */
 function removeSseConnection(code, res, participantId) {
   const set = sseConnections[code];
@@ -86,13 +85,6 @@ function removeSseConnection(code, res, participantId) {
     const idx = set.indexOf(res);
     if (idx >= 0) set.splice(idx, 1);
     if (set.length === 0) delete sseConnections[code];
-  }
-  // Remove participant from group when disconnecting.
-  const group = data.groups[code];
-  if (group && group.participants[participantId]) {
-    delete group.participants[participantId];
-    saveData();
-    broadcastGroupState(code);
   }
 }
 
@@ -300,10 +292,43 @@ function handleSse(req, res) {
   });
 }
 
+/**
+ * Return a list of participants for a given group code so the client can
+ * let users rejoin an existing participant.
+ */
+function handleGroupInfo(req, res) {
+  const urlObj = new URL(req.url, `http://${req.headers.host}`);
+  const code = urlObj.searchParams.get('code');
+  if (!code) {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'code is required' }));
+    return;
+  }
+  const group = data.groups[code];
+  if (!group) {
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'group not found' }));
+    return;
+  }
+  const participants = Object.values(group.participants || {})
+    .map((participant) => ({
+      id: participant.id,
+      name: participant.name,
+      slices: participant.slices
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ participants }));
+}
+
 // Create and start the HTTP server.
 const server = http.createServer((req, res) => {
   if (req.method === 'POST') {
     handlePost(req, res);
+    return;
+  }
+  if (req.method === 'GET' && req.url.startsWith('/group-info')) {
+    handleGroupInfo(req, res);
     return;
   }
   // SSE endpoint: /events
