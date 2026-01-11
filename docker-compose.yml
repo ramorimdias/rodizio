@@ -1,0 +1,26 @@
+services:
+  rodizio:
+    image: node:20-alpine
+    container_name: rodizio-app
+    working_dir: /app
+    command: ["node", "server.js"]
+    restart: unless-stopped
+    environment:
+      - PORT=3000
+    volumes:
+      - ./:/app
+      - ./data.json:/app/data.json
+    networks:
+      - aio_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rodizio.rule=Host(`rodizio.667764.xyz`)"
+      - "traefik.http.routers.rodizio.entrypoints=websecure"
+      - "traefik.http.routers.rodizio.tls=true"
+      - "traefik.http.services.rodizio.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.rodizio-nobuffer.buffering.maxResponseBodyBytes=0"
+      - "traefik.http.routers.rodizio.middlewares=rodizio-nobuffer@docker"
+
+networks:
+  aio_network:
+    external: true
