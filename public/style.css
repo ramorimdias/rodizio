@@ -103,56 +103,6 @@ form.card select {
   font-weight: 600;
 }
 
-.food-options {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.food-option {
-  position: relative;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: 2px solid #eee;
-  background: #fafafa;
-  cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.food-option input {
-  position: absolute;
-  opacity: 0;
-}
-
-.food-option img {
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
-}
-
-.food-option span {
-  font-weight: 600;
-  color: #444;
-}
-
-.food-option input:checked ~ span {
-  color: #f95f62;
-}
-
-.food-option input:checked + img {
-  box-shadow: 0 0 0 3px rgba(249, 95, 98, 0.3);
-  border-radius: 12px;
-}
-
-.food-option:hover {
-  border-color: #f95f62;
-}
-
 .radio-group {
   display: flex;
   flex-direction: column;
@@ -236,11 +186,6 @@ form.card select {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.participant.leader {
-  border: 2px solid #f95f62;
-  box-shadow: 0 4px 10px rgba(249, 95, 98, 0.2);
-}
-
 .participant .info {
   flex: 1;
 }
@@ -249,16 +194,8 @@ form.card select {
   margin-bottom: 0.25rem;
 }
 .participant .slices {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #777;
-  display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
-}
-.participant .slices .count {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #333;
 }
 .participant .controls {
   display: flex;
