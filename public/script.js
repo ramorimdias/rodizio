@@ -34,6 +34,13 @@
   const joinExistingPanel = document.getElementById('join-existing');
   const joinExistingSelect = document.getElementById('join-existing-select');
   const joinExistingEmpty = document.getElementById('join-existing-empty');
+  const joinFeedback = document.getElementById('join-feedback');
+
+  function setJoinFeedback(message) {
+    if (!joinFeedback) return;
+    joinFeedback.textContent = message || '';
+    joinFeedback.classList.toggle('hidden', !message);
+  }
 
   // Toggle visibility of forms.  Only one should be visible at a time.
   showCreateBtn?.addEventListener('click', () => {
@@ -76,21 +83,28 @@
   async function loadParticipants() {
     const code = joinCodeInput.value.trim().toUpperCase();
     if (!code) {
-      alert('Por favor, insira o código do grupo.');
+      setJoinFeedback('Por favor, insira o código do grupo.');
       return null;
     }
+    setJoinFeedback('');
     try {
       const response = await fetch(`/group-info?code=${encodeURIComponent(code)}`);
       const result = await response.json();
       if (!response.ok) {
-        alert(result.error || 'Erro ao buscar participantes.');
-        return null;
+        return {
+          code,
+          participants: [],
+          errorMessage: result.error || 'Erro ao buscar participantes.'
+        };
       }
       return { code, participants: result.participants || [] };
     } catch (err) {
       console.error(err);
-      alert('Falha ao buscar participantes.');
-      return null;
+      return {
+        code,
+        participants: [],
+        errorMessage: 'Falha ao buscar participantes.'
+      };
     }
   }
 
@@ -115,11 +129,18 @@
   }
 
   loadParticipantsBtn?.addEventListener('click', async () => {
-    const result = await loadParticipants();
-    if (!result) return;
-    renderParticipantsList(result.participants);
     joinOptions?.classList.remove('hidden');
     setJoinMode(document.querySelector('input[name="join-mode"]:checked')?.value || 'new');
+    setJoinFeedback('Carregando participantes...');
+    loadParticipantsBtn.disabled = true;
+    const result = await loadParticipants();
+    loadParticipantsBtn.disabled = false;
+    if (!result) {
+      setJoinFeedback('Por favor, insira o código do grupo.');
+      return;
+    }
+    renderParticipantsList(result.participants);
+    setJoinFeedback(result.errorMessage || '');
   });
 
   joinModeInputs.forEach((input) => {
