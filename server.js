@@ -80,6 +80,8 @@ const mimeTypes = {
   '.svg': 'image/svg+xml'
 };
 
+const validFoodTypes = new Set(['pizza', 'japones', 'hamburger', 'pastel', 'churrasco']);
+
 /**
  * Send the current state of a group via SSE to all connected clients.
  * Builds a sorted list of participants (descending by slices) and writes
@@ -145,7 +147,9 @@ function handlePost(req, res) {
         res.end(JSON.stringify({ error: 'name and participantId are required' }));
         return;
       }
-      const foodType = payload.foodType === 'japones' ? 'japones' : 'pizza';
+      const foodType = validFoodTypes.has(payload.foodType)
+        ? payload.foodType
+        : 'pizza';
       let code;
       do {
         code = generateCode();

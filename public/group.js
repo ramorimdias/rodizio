@@ -55,16 +55,20 @@
     }
   });
 
+  const foodConfig = {
+    pizza: { icon: 'pizza.png', label: 'Pizza', unit: 'fatia', plural: 'fatias' },
+    japones: { icon: 'uramaki.png', label: 'Japonês', unit: 'peça', plural: 'peças' },
+    hamburger: { icon: 'hamburger.png', label: 'Hambúrguer', unit: 'porção', plural: 'porções' },
+    pastel: { icon: 'pastel.png', label: 'Pastel', unit: 'porção', plural: 'porções' },
+    churrasco: { icon: 'churrasco.png', label: 'Churrasco', unit: 'porção', plural: 'porções' }
+  };
+
   function setFoodIcon(foodType) {
     const icon = document.getElementById('food-icon');
     if (!icon) return;
-    if (foodType === 'japones') {
-      icon.src = 'uramaki.png';
-      icon.alt = 'Japonês';
-    } else {
-      icon.src = 'pizza.png';
-      icon.alt = 'Pizza';
-    }
+    const config = foodConfig[foodType] || foodConfig.pizza;
+    icon.src = config.icon;
+    icon.alt = config.label;
   }
 
   setFoodIcon(currentFoodType);
@@ -77,8 +81,8 @@
   const evtSource = new EventSource(sseUrl);
 
   function getSliceLabel(foodType, count) {
-    const unit = foodType === 'japones' ? 'peça' : 'fatia';
-    return count === 1 ? unit : `${unit}s`;
+    const config = foodConfig[foodType] || foodConfig.pizza;
+    return count === 1 ? config.unit : config.plural;
   }
 
   evtSource.onmessage = (event) => {
