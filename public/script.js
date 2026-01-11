@@ -149,6 +149,7 @@
   }
 
   loadParticipantsBtn?.addEventListener('click', async () => {
+    setJoinFeedback('Carregando participantes...');
     loadParticipantsBtn.disabled = true;
     const result = await loadParticipants({ showLoadingMessage: true });
     loadParticipantsBtn.disabled = false;
@@ -173,7 +174,8 @@
     const code = joinCodeInput.value.trim().toUpperCase();
     if (!code) return;
     if (joinOptions?.classList.contains('hidden')) {
-      const result = await loadParticipants({ showLoadingMessage: true });
+      setJoinFeedback('Carregando participantes...');
+      const result = await loadParticipants();
       if (!result) return;
       renderParticipantsList(result.participants);
       joinOptions.classList.remove('hidden');
