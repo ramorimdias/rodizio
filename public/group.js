@@ -86,6 +86,8 @@
 
   function renderParticipants(participants) {
     participantsEl.innerHTML = '';
+    const maxSlices = Math.max(0, ...participants.map((p) => p.slices || 0));
+    let crownAssigned = false;
     participants.forEach((p) => {
       const row = document.createElement('div');
       row.className = 'participant';
@@ -95,7 +97,12 @@
 
       const nameEl = document.createElement('div');
       nameEl.className = 'name';
-      nameEl.textContent = p.name;
+      if (!crownAssigned && p.slices === maxSlices) {
+        nameEl.textContent = `👑 ${p.name}`;
+        crownAssigned = true;
+      } else {
+        nameEl.textContent = p.name;
+      }
 
       const slicesEl = document.createElement('div');
       slicesEl.className = 'slices';
