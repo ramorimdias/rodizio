@@ -107,7 +107,14 @@ function handleGroupPage() {
   // em localStorage para que o participante permaneça o mesmo em
   // recarregamentos e múltiplas abas.
   const localKey = 'pizza_app_id';
+  const nameKey = 'pizza_app_name';
+  const normalize = value => (value || '').trim().toLowerCase();
+  const storedName = localStorage.getItem(nameKey);
   let myId = localStorage.getItem(localKey);
+  if (storedName && normalize(storedName) !== normalize(nameParam)) {
+    localStorage.removeItem(localKey);
+    myId = null;
+  }
   if (!myId) {
     myId = 'id-' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem(localKey, myId);
@@ -161,14 +168,25 @@ function handleGroupPage() {
           msgEl.textContent = data.error || 'Erro ao entrar no grupo.';
           return;
         }
-        if (data.participantId && data.participantId !== myId) {
+        if (data.participantId) {
           myId = data.participantId;
           localStorage.setItem(localKey, myId);
+        }
+        if (data.participant && data.participant.name) {
+          localStorage.setItem(nameKey, data.participant.name);
+        } else {
+          localStorage.setItem(nameKey, name);
         }
         groupCode = data.code;
         // Estabelece conexão SSE
         connectEventStream(groupCode);
-        renderParticipants([{ id: myId, name, slices: 0 }]);
+        if (Array.isArray(data.participants) && data.participants.length) {
+          renderParticipants(data.participants);
+        } else if (data.participant) {
+          renderParticipants([data.participant]);
+        } else {
+          renderParticipants([{ id: myId, name, slices: 0 }]);
+        }
       }).catch(err => {
         msgEl.textContent = 'Falha na comunicação com o servidor.';
       });
