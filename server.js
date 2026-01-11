@@ -220,7 +220,8 @@ function handlePost(req, res) {
  * exist respond with a 404.  The default route `/` serves index.html.
  */
 function serveStatic(req, res) {
-  let filePath = req.url;
+  const urlObj = new URL(req.url, `http://${req.headers.host}`);
+  let filePath = urlObj.pathname;
   if (filePath === '/') filePath = '/index.html';
   // Prevent directory traversal.
   const safePath = path.normalize(filePath).replace(/^\/|(?:\.\.)/g, '');
